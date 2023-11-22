@@ -5,11 +5,22 @@ body {
   margin: 0;
 }
 
+a {
+  text-decoration: none;
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 2rem;
-
   font-weight: normal;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.justify-content-center {
+  justify-content: center;
 }
 

@@ -1,7 +1,8 @@
-.d-flex {
-  display: flex;
-}
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+  --blue: #007bff;
+  --yellow: yellow;
 
-.justify-content-center {
-  justify-content: center;
+  --nav-item-hover: #003b7a;
+  --nav-item-active: #495057;
 }
