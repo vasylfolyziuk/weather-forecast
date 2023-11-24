@@ -1,18 +1,28 @@
 <script setup lang="ts">
 import WeatherForecastItem from '@/components/WeatherForecast/WeatherForecastItem.vue';
-import type { CityWeather } from '@/types/CityWeather';
+import type { ForecastListItem } from './WeatherForecast.vue';
 
 const props = defineProps<{
-  forecastList: Array<CityWeather>
+  forecastList: Array<ForecastListItem>
 }>();
+
+const emit = defineEmits<{
+  (e: 'changeCityName', name: string, id: number): void
+}>();
+
+const onChangeCity = (name: string, id: number) => {
+  emit('changeCityName', name, id);
+}
+
 </script>
 
 <template>
   <ul>
     <WeatherForecastItem
-      v-for="weatherForecast in forecastList"
-      :key="weatherForecast.id"
-      :weatherForecast="weatherForecast"
+      v-for="forecast in forecastList"
+      :key="forecast.cityName"
+      :forecast="forecast"
+      @changeCityName="onChangeCity"
     />
   </ul>
 </template>

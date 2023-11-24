@@ -15,6 +15,17 @@ h2 {
   margin: 1rem 0;
 }
 
+.button {
+  padding: 5px;
+  height: max-content;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;
