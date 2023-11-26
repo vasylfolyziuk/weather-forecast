@@ -4,6 +4,7 @@ import {fetchEntity} from '@/services/fetchEntity';
 import type {CityLocation} from '@/types/CityLocation';
 import type {CityWeather} from '@/types/CityWeather';
 import WeatherForecastList from '@/components/WeatherForecast/WeatherForecastList.vue';
+import AlertModal from '@/components/Modals/AlertModal.vue';
 
 export interface ForecastListItem {
   id: number;
@@ -14,7 +15,8 @@ export interface ForecastListItem {
 }
 
 interface State {
-  forecastList: Array<ForecastListItem>
+  forecastList: Array<ForecastListItem>;
+  isAlertModalVisible: boolean;
 }
 
 const baseUrl = import.meta.env.VITE_BASE_URL;
@@ -26,13 +28,15 @@ const state = reactive<State>({
     fetching: false,
     cityName: '',
     error: ''
-  }]
+  }],
+  isAlertModalVisible: false
 });
 
 const getCityForecast = async (lat: number, lon: number): Promise<CityWeather> => {
   return await fetchEntity(`${baseUrl}/data/2.5/weather`, {params: {
     lat,
     lon,
+    units: 'metric',
     appid: appId
   }}) as CityWeather;
 }
@@ -70,7 +74,8 @@ onMounted(async () => {
 const onChangeCityName = async (name: string, id: number) => {
   const {forecastList} = state;
 
-  const isNameDuplicated = forecastList.filter(forecast => forecast.cityName === name).length > 1;
+  const isNameDuplicated = forecastList
+    .filter(forecast => forecast.cityName.toLowerCase() === name.toLowerCase()).length > 0;
   const forecast = forecastList.find(forecast => forecast.id === id);
   
   if (forecast) {
@@ -97,11 +102,33 @@ const onChangeCityName = async (name: string, id: number) => {
   }
 }
 
+const addNewForecastCard = () => {
+  const MAX_SIZE_LIST = 5;
+
+  if (state.forecastList.length < MAX_SIZE_LIST) {
+    state.forecastList.push({
+      id: new Date().getTime(),
+      fetching: false,
+      cityName: '',
+      error: ''
+    });
+  } else {
+    state.isAlertModalVisible = true;
+  }
+}
+
 </script>
 
 <template>
   <WeatherForecastList
     :forecastList="state.forecastList"
     @changeCityName="onChangeCityName"
+    @addNewForecastCard="addNewForecastCard"
+  />
+
+  <AlertModal
+    v-if="state.isAlertModalVisible"
+    text="You are not able to add more then 5 items"
+    @onClose="state.isAlertModalVisible = false"
   />
 </template>

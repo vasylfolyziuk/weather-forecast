@@ -6,11 +6,16 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'changeCityName', name: string, id: number): void
+  (e: 'changeCityName', name: string, id: number): void,
+  (e: 'addNewForecastCard'): void
 }>();
 
 const onChangeCity = (e: Event) => {
   emit('changeCityName', (e.target as HTMLInputElement).value, props.forecast.id);
+}
+
+const addNewForecastCard = () => {
+  emit('addNewForecastCard');
 }
 
 </script>
@@ -72,7 +77,7 @@ const onChangeCity = (e: Event) => {
         </div>
 
         <div class="card-right-side">
-          <button class="button action-button">+</button>
+          <button class="button action-button" @click="addNewForecastCard">+</button>
           <button class="button action-button">-</button>
         </div>
       </template>

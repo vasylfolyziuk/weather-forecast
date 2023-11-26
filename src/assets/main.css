@@ -15,9 +15,36 @@ h2 {
   margin: 1rem 0;
 }
 
-.button {
-  padding: 5px;
-  height: max-content;
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  border: 1px solid transparent;
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: .25rem;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  color: #007bff;
+  background-color: transparent;
+  cursor: none;
+  user-select: none;
+}
+
+.btn.btn-primary {
+  background-color: #fff;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.btn.btn-primary:hover {
+  background-color: #007bff;
+  color: #fff;
 }
 
 ul {
