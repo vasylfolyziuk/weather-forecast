@@ -1,23 +1,16 @@
 <script setup lang="ts">
 import WeatherForecastItem from '@/components/WeatherForecast/WeatherForecastItem.vue';
-import type { ForecastListItem } from './WeatherForecast.vue';
+import type { ForecastListItem } from '@/components/WeatherForecast/WeatherForecast.vue';
 
-const props = defineProps<{
+defineProps<{
   forecastList: Array<ForecastListItem>
 }>();
 
 const emit = defineEmits<{
-  (e: 'changeCityName', name: string, id: number): void,
-  (e: 'addNewForecastCard'): void
+  (e: 'changeForecastCity', name: string, id: number): void,
+  (e: 'addForecast'): void,
+  (e: 'deleteForecast', id: number): void
 }>();
-
-const onChangeCity = (name: string, id: number) => {
-  emit('changeCityName', name, id);
-}
-
-const addNewForecastCard = () => {
-  emit('addNewForecastCard');
-}
 
 </script>
 
@@ -27,8 +20,10 @@ const addNewForecastCard = () => {
       v-for="forecast in forecastList"
       :key="forecast.cityName"
       :forecast="forecast"
-      @changeCityName="onChangeCity"
-      @addNewForecastCard="addNewForecastCard"
+      :isLast="forecastList.length === 1"
+      @changeForecastCity="(name: string, id: number) => emit('changeForecastCity', name, id)"
+      @addForecast="() => emit('addForecast')"
+      @deleteForecast="(id: number) => emit('deleteForecast', id)"
     />
   </ul>
 </template>

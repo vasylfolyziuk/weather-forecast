@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import type { ForecastListItem } from './WeatherForecast.vue';
+import ConfirmModal from '@/components/Modals/ConfirmModal.vue';
+import {useModal} from '@/components/Modals/useModal';
+import type { ForecastListItem } from '@/components/WeatherForecast/WeatherForecast.vue';
 
 const props = defineProps<{
+  isLast: boolean,
   forecast: ForecastListItem
 }>();
 
 const emit = defineEmits<{
-  (e: 'changeCityName', name: string, id: number): void,
-  (e: 'addNewForecastCard'): void
+  (e: 'changeForecastCity', name: string, id: number): void,
+  (e: 'addForecast'): void,
+  (e: 'deleteForecast', id: number): void
 }>();
 
-const onChangeCity = (e: Event) => {
-  emit('changeCityName', (e.target as HTMLInputElement).value, props.forecast.id);
-}
+const {forecast} = props;
+const {show, showModal, hideModal} = useModal();
 
-const addNewForecastCard = () => {
-  emit('addNewForecastCard');
+const onChangeCity = (e: Event) => {
+  emit('changeForecastCity', (e.target as HTMLInputElement).value, forecast.id);
 }
 
 </script>
@@ -34,7 +37,7 @@ const addNewForecastCard = () => {
       </div>
       <button
         :disabled="!forecast.cityWeather"
-        class="button ">
+        class="btn btn-primary">
         Add to Favorites
       </button>
     </div>
@@ -77,12 +80,30 @@ const addNewForecastCard = () => {
         </div>
 
         <div class="card-right-side">
-          <button class="button action-button" @click="addNewForecastCard">+</button>
-          <button class="button action-button">-</button>
+          <button
+            class="btn btn-secondary action-button"
+            @click="() => emit('addForecast')">
+            +
+          </button>
+          <button
+            class="btn btn-secondary action-button"
+            :disabled="isLast"
+            @click="() => !isLast && showModal()">
+            -
+          </button>
         </div>
       </template>
     </div>
   </li>
+
+  <ConfirmModal
+    v-if="show"
+    title="Delete forecast weather card"
+    text="Are you sure you want to delete this forecast weather card?"
+    confirmBtnText="Delete"
+    @onClose="() => hideModal()"
+    @onConfirm="() => emit('deleteForecast', forecast.id)"
+  />
 </template>
 
 <style scoped>

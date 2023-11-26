@@ -71,7 +71,7 @@ onMounted(async () => {
 
 });
 
-const onChangeCityName = async (name: string, id: number) => {
+const changeForecastCity = async (name: string, id: number) => {
   const {forecastList} = state;
 
   const isNameDuplicated = forecastList
@@ -102,7 +102,7 @@ const onChangeCityName = async (name: string, id: number) => {
   }
 }
 
-const addNewForecastCard = () => {
+const addForecast = () => {
   const MAX_SIZE_LIST = 5;
 
   if (state.forecastList.length < MAX_SIZE_LIST) {
@@ -117,18 +117,25 @@ const addNewForecastCard = () => {
   }
 }
 
+const deleteForecast = (id: number) => {
+  if (state.forecastList.length !== 1) {
+    state.forecastList = state.forecastList.filter(forecast => forecast.id !== id);
+  }
+}
+
 </script>
 
 <template>
   <WeatherForecastList
     :forecastList="state.forecastList"
-    @changeCityName="onChangeCityName"
-    @addNewForecastCard="addNewForecastCard"
+    @changeForecastCity="changeForecastCity"
+    @addForecast="addForecast"
+    @deleteForecast="deleteForecast"
   />
 
   <AlertModal
     v-if="state.isAlertModalVisible"
     text="You are not able to add more then 5 items"
-    @onClose="state.isAlertModalVisible = false"
+    @onClose="() => state.isAlertModalVisible = false"
   />
 </template>

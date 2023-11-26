@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-const props = defineProps<{
+defineProps<{
   text: string
 }>();
 
@@ -49,9 +49,11 @@ const close = () => {
 }
 
 .modal-content {
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: #fefefe;
-  margin: auto;
   padding: 0;
   border: 1px solid #888;
   width: 80%;

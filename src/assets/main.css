@@ -29,11 +29,9 @@ h2 {
   cursor: pointer;
 }
 
-.btn:disabled {
-  color: #007bff;
-  background-color: transparent;
-  cursor: none;
-  user-select: none;
+.btn:disabled, .btn:disabled:hover {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .btn.btn-primary {
@@ -45,6 +43,18 @@ h2 {
 .btn.btn-primary:hover {
   background-color: #007bff;
   color: #fff;
+}
+
+.btn.btn-secondary {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn.btn-secondary:hover {
+  color: #fff;
+  background-color: #5a6268;
+  border-color: #545b62;
 }
 
 ul {
