@@ -1,4 +1,4 @@
-export interface CityWeather {
+export interface TodayForecast {
   coord: {
     lon: number,
     lat: number

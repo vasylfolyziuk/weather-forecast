@@ -2,7 +2,9 @@
 import { onMounted, reactive } from 'vue';
 import {fetchEntity} from '@/services/fetchEntity';
 import type {CityLocation} from '@/types/CityLocation';
-import type {CityWeather} from '@/types/CityWeather';
+import type {TodayForecast} from '@/types/TodayForecast.ts';
+import type {WeekForecast} from '@/types/WeekForecast.ts';
+import type {RangeMode} from '@/types/RangeMode';
 import WeatherForecastList from '@/components/WeatherForecast/WeatherForecastList.vue';
 import AlertModal from '@/components/Modals/AlertModal.vue';
 
@@ -11,7 +13,9 @@ export interface ForecastListItem {
   fetching: boolean;
   cityName: string;
   error: string;
-  cityWeather?: CityWeather | null
+  rangeMode: RangeMode,
+  today?: TodayForecast | null,
+  week?: WeekForecast | null,
 }
 
 interface State {
@@ -27,18 +31,28 @@ const state = reactive<State>({
     id: new Date().getTime(),
     fetching: false,
     cityName: '',
+    rangeMode: 'DAY',
     error: ''
   }],
   isAlertModalVisible: false
 });
 
-const getCityForecast = async (lat: number, lon: number): Promise<CityWeather> => {
+const getCityForecast = async (lat: number, lon: number): Promise<TodayForecast> => {
   return await fetchEntity(`${baseUrl}/data/2.5/weather`, {params: {
     lat,
     lon,
     units: 'metric',
     appid: appId
-  }}) as CityWeather;
+  }}) as TodayForecast;
+}
+
+const get5daysCityForecast = async (lat: number, lon: number): Promise<WeekForecast> => {
+  return await fetchEntity(`${baseUrl}/data/2.5/forecast`, {params: {
+    lat,
+    lon,
+    units: 'metric',
+    appid: appId
+  }}) as WeekForecast;
 }
 
 const getCityLatLon = async (cityName: string): Promise<Array<CityLocation>> => {
@@ -49,7 +63,7 @@ const getCityLatLon = async (cityName: string): Promise<Array<CityLocation>> => 
   }}) as Array<CityLocation>;
 }
 
-const fetchTodayForecast = async (cityName: string): Promise<CityWeather | null> => {
+const fetchTodayForecast = async (cityName: string): Promise<TodayForecast | null> => {
   const cityLocationResponse = await getCityLatLon(cityName);
 
   if (cityLocationResponse && cityLocationResponse.length > 0) {
@@ -65,8 +79,8 @@ onMounted(async () => {
 
   // if (cityLocationResponse) {
   //   const [cityLatLon] = cityLocationResponse;
-  //   const cityWeatherResponse = await getCityWeather(cityLatLon.lat, cityLatLon.lon);
-  //   forecastList.value?.push(cityWeatherResponse);
+  //   const todayResponse = await getTodayForecast(cityLatLon.lat, cityLatLon.lon);
+  //   forecastList.value?.push(todayResponse);
   // }
 
 });
@@ -86,17 +100,17 @@ const changeForecastCity = async (name: string, id: number) => {
     if (isNameDuplicated) {
       forecast.fetching = false;
       forecast.error = 'City with this name already exists';
-      forecast.cityWeather = null;
+      forecast.today = null;
       return;
     }
     
-    const cityWeatherForecast = await fetchTodayForecast(name);
+    const todayForecast = await fetchTodayForecast(name);
 
-    if (cityWeatherForecast) {
-      forecast.cityWeather = cityWeatherForecast;
+    if (todayForecast) {
+      forecast.today = todayForecast;
     } else {
       forecast.error = 'City was not found';
-      forecast.cityWeather = null;
+      forecast.today = null;
     }
     forecast.fetching = false;
   }
@@ -110,6 +124,7 @@ const addForecast = () => {
       id: new Date().getTime(),
       fetching: false,
       cityName: '',
+      rangeMode: 'DAY',
       error: ''
     });
   } else {
@@ -123,6 +138,20 @@ const deleteForecast = (id: number) => {
   }
 }
 
+const switchRange = async (rangeMode: RangeMode, id: number) => {
+  const forecast = state.forecastList.find(forecast => forecast.id === id);
+
+  if (forecast) {
+    forecast.rangeMode = rangeMode;
+
+    if (forecast.today) {
+      const {lat, lon} = forecast.today.coord;
+      const weekForecast = await get5daysCityForecast(lat, lon);
+      forecast.week = weekForecast;
+    }
+  }
+}
+
 </script>
 
 <template>
@@ -131,6 +160,7 @@ const deleteForecast = (id: number) => {
     @changeForecastCity="changeForecastCity"
     @addForecast="addForecast"
     @deleteForecast="deleteForecast"
+    @switchRange="switchRange"
   />
 
   <AlertModal
