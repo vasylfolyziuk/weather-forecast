@@ -19,10 +19,11 @@ const emit = defineEmits<{
 <template>
   <ul>
     <WeatherForecastItem
-      v-for="forecast in forecastList"
+      v-for="(forecast, index) in forecastList"
       :key="forecast.cityName"
       :forecast="forecast"
-      :isLast="forecastList.length === 1"
+      :isSingle="forecastList.length === 1"
+      :isLast="index === (forecastList.length - 1)"
       @changeForecastCity="(name, id) => emit('changeForecastCity', name, id)"
       @addForecast="() => emit('addForecast')"
       @deleteForecast="(id) => emit('deleteForecast', id)"

@@ -6,6 +6,7 @@ import {useModal} from '@/components/Modals/useModal';
 import type { ForecastListItem } from '@/components/WeatherForecast/WeatherForecast.vue';
 import WeatherForecastCardData from './WeatherForecastCardData.vue';
 import type { WeekForecast } from '@/types/WeekForecast';
+import Spinner from '../Spinner/Spinner.vue';
 
 type DAY = {
   date: string;
@@ -13,6 +14,7 @@ type DAY = {
 };
 
 const props = defineProps<{
+  isSingle: boolean,
   isLast: boolean,
   forecast: ForecastListItem
 }>();
@@ -77,18 +79,19 @@ const onChangeCity = (e: Event) => {
 
       <button
         class="btn btn-secondary action-button"
+        :disabled="!isLast"
         @click="() => emit('addForecast')">
         +
       </button>
       <button
         class="btn btn-secondary action-button"
-        :disabled="isLast"
-        @click="() => !isLast && showModal()">
+        :disabled="isSingle"
+        @click="() => !isSingle && showModal()">
         -
       </button>
     </div>
     <div>
-      <template v-if="!forecast.fetching && forecast.today">
+      <template v-if="forecast.today">
         <div>
           <h2>Weather in {{ forecast.today.name }}</h2>
 
@@ -105,36 +108,40 @@ const onChangeCity = (e: Event) => {
             Week
           </button>
 
-          <WeatherForecastCardData
-            v-if="forecast.rangeMode === 'DAY'"
-            :temp="forecast.today.main.temp"
-            :visibility="forecast.today.visibility"
-            :windSpeed="forecast.today.wind.speed"
-            :pressure="forecast.today.main.pressure"
-            :humidity="forecast.today.main.humidity"
-          />
-
+          <Spinner v-if="forecast.fetching" />
+          
           <template v-else>
-            <div class="card-hours-list">
-              <template
-                v-for="item in dates"
-                :key="item.date">
-                <div class="card-hours-item">
-                  <WeatherForecastCardData
-                    v-for="(day, index) in item.list"
-                    :key="day.dt_txt"
-                    :showDate="index === 0"
-                    :date="item.date"
-                    :hour="day.dt_txt.split(' ')[1]"
-                    :temp="day.main.temp"
-                    :visibility="day.visibility"
-                    :windSpeed="day.wind.speed"
-                    :pressure="day.main.pressure"
-                    :humidity="day.main.humidity"
-                  />
-                </div>
-              </template>
-            </div>
+            <WeatherForecastCardData
+              v-if="forecast.rangeMode === 'DAY'"
+              :temp="forecast.today.main.temp"
+              :visibility="forecast.today.visibility"
+              :windSpeed="forecast.today.wind.speed"
+              :pressure="forecast.today.main.pressure"
+              :humidity="forecast.today.main.humidity"
+            />
+
+            <template v-else>
+              <div class="card-hours-list">
+                <template
+                  v-for="item in dates"
+                  :key="item.date">
+                  <div class="card-hours-item">
+                    <WeatherForecastCardData
+                      v-for="(day, index) in item.list"
+                      :key="day.dt_txt"
+                      :showDate="index === 0"
+                      :date="item.date"
+                      :hour="day.dt_txt.split(' ')[1]"
+                      :temp="day.main.temp"
+                      :visibility="day.visibility"
+                      :windSpeed="day.wind.speed"
+                      :pressure="day.main.pressure"
+                      :humidity="day.main.humidity"
+                    />
+                  </div>
+                </template>
+              </div>
+            </template>
           </template>
         </div>
       </template>

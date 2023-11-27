@@ -13,9 +13,9 @@ export interface ForecastListItem {
   fetching: boolean;
   cityName: string;
   error: string;
-  rangeMode: RangeMode,
-  today?: TodayForecast | null,
-  week?: WeekForecast | null,
+  rangeMode: RangeMode;
+  today?: TodayForecast | null;
+  week?: WeekForecast | null;
 }
 
 interface State {
@@ -141,14 +141,15 @@ const deleteForecast = (id: number) => {
 const switchRange = async (rangeMode: RangeMode, id: number) => {
   const forecast = state.forecastList.find(forecast => forecast.id === id);
 
-  if (forecast) {
+  if (forecast?.today) {
+    forecast.fetching = true;  
     forecast.rangeMode = rangeMode;
 
-    if (forecast.today) {
-      const {lat, lon} = forecast.today.coord;
-      const weekForecast = await get5daysCityForecast(lat, lon);
-      forecast.week = weekForecast;
-    }
+    const {lat, lon} = forecast.today.coord;
+    const weekForecast = await get5daysCityForecast(lat, lon);
+    
+    forecast.week = weekForecast;
+    forecast.fetching = false;
   }
 }
 
