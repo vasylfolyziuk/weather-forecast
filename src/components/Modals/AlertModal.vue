@@ -1,9 +1,5 @@
 <script setup lang="ts">
 
-defineProps<{
-  text: string
-}>();
-
 const emit = defineEmits<{
   (e: 'onClose'): void,
 }>();
@@ -22,7 +18,7 @@ const close = () => {
         <h2>Alert modal</h2>
       </div>
       <div class="modal-body">
-        <p>{{ text }}</p>
+        <slot></slot>
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary" @click="close">

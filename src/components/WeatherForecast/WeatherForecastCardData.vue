@@ -13,8 +13,6 @@ export interface ForecastCardData {
 
 const now = new Date();
 
-// defineProps<ForecastCardData>();
-
 withDefaults(defineProps<ForecastCardData>(), {
   date: `${new Date().getFullYear()}-${(new Date().getMonth() + 1)}-${new Date().getDate()}`,
   showDate: true

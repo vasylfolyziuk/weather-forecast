@@ -14,7 +14,7 @@ import { RouterLink } from 'vue-router'
       to="/favorites" 
       class="nav-item"
       activeClass="active">
-      About
+      Favorites
     </RouterLink>
   </nav>
 </template>

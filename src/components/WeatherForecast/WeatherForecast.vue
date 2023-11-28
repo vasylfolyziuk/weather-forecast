@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onMounted, reactive } from 'vue';
-import {fetchEntity} from '@/services/fetchEntity';
-import type {CityLocation} from '@/types/CityLocation';
 import type {TodayForecast} from '@/types/TodayForecast.ts';
 import type {WeekForecast} from '@/types/WeekForecast.ts';
 import type {RangeMode} from '@/types/RangeMode';
 import WeatherForecastList from '@/components/WeatherForecast/WeatherForecastList.vue';
 import AlertModal from '@/components/Modals/AlertModal.vue';
+import { useFavorites } from './useFavorites';
+import { RouterLink } from 'vue-router';
+import { useFetch } from '@/services/useFetch';
 
 export interface ForecastListItem {
   id: number;
@@ -20,11 +21,11 @@ export interface ForecastListItem {
 
 interface State {
   forecastList: Array<ForecastListItem>;
-  isAlertModalVisible: boolean;
+  isAddAlertVisible: boolean;
+  isAddFavoriteAlertVisible: boolean;
 }
 
-const baseUrl = import.meta.env.VITE_BASE_URL;
-const appId = import.meta.env.VITE_OPEN_WEATHER_APP_ID;
+const MAX_SIZE_LIST = 2;
 
 const state = reactive<State>({
   forecastList: [{
@@ -34,45 +35,13 @@ const state = reactive<State>({
     rangeMode: 'DAY',
     error: ''
   }],
-  isAlertModalVisible: false
+  isAddAlertVisible: false,
+  isAddFavoriteAlertVisible: false
 });
 
-const getCityForecast = async (lat: number, lon: number): Promise<TodayForecast> => {
-  return await fetchEntity(`${baseUrl}/data/2.5/weather`, {params: {
-    lat,
-    lon,
-    units: 'metric',
-    appid: appId
-  }}) as TodayForecast;
-}
+const {favorites, addToFavorites} = useFavorites();
+const {getCityLatLon, getCityForecast, get5daysCityForecast, getTodayForecast} = useFetch();
 
-const get5daysCityForecast = async (lat: number, lon: number): Promise<WeekForecast> => {
-  return await fetchEntity(`${baseUrl}/data/2.5/forecast`, {params: {
-    lat,
-    lon,
-    units: 'metric',
-    appid: appId
-  }}) as WeekForecast;
-}
-
-const getCityLatLon = async (cityName: string): Promise<Array<CityLocation>> => {
-  return await fetchEntity(`${baseUrl}/geo/1.0/direct`, {params: {
-    q: cityName,
-    limit: 1,
-    appid: appId
-  }}) as Array<CityLocation>;
-}
-
-const fetchTodayForecast = async (cityName: string): Promise<TodayForecast | null> => {
-  const cityLocationResponse = await getCityLatLon(cityName);
-
-  if (cityLocationResponse && cityLocationResponse.length > 0) {
-    const [cityLatLon] = cityLocationResponse;
-    return await getCityForecast(cityLatLon.lat, cityLatLon.lon);
-  }
-
-  return null;
-}
 
 onMounted(async () => {
   // const cityLocationResponse = await getCityLatLon();
@@ -104,10 +73,11 @@ const changeForecastCity = async (name: string, id: number) => {
       return;
     }
     
-    const todayForecast = await fetchTodayForecast(name);
+    const todayForecast = await getTodayForecast(name);
 
     if (todayForecast) {
       forecast.today = todayForecast;
+      forecast.id = todayForecast.id;
     } else {
       forecast.error = 'City was not found';
       forecast.today = null;
@@ -117,8 +87,6 @@ const changeForecastCity = async (name: string, id: number) => {
 }
 
 const addForecast = () => {
-  const MAX_SIZE_LIST = 5;
-
   if (state.forecastList.length < MAX_SIZE_LIST) {
     state.forecastList.push({
       id: new Date().getTime(),
@@ -128,7 +96,7 @@ const addForecast = () => {
       error: ''
     });
   } else {
-    state.isAlertModalVisible = true;
+    state.isAddAlertVisible = true;
   }
 }
 
@@ -153,20 +121,49 @@ const switchRange = async (rangeMode: RangeMode, id: number) => {
   }
 }
 
+const addFavorite = (id: number) => {
+  if (favorites.value.length < MAX_SIZE_LIST) {
+    const forecast = state.forecastList.find(forecast => forecast.id === id);
+    if (forecast) {
+      addToFavorites(forecast);
+    }
+  } else {
+    state.isAddFavoriteAlertVisible = true;
+  }
+}
+
 </script>
 
 <template>
   <WeatherForecastList
     :forecastList="state.forecastList"
+    :favorites="favorites"
     @changeForecastCity="changeForecastCity"
     @addForecast="addForecast"
     @deleteForecast="deleteForecast"
     @switchRange="switchRange"
+    @addToFavorite="addFavorite"
   />
 
   <AlertModal
-    v-if="state.isAlertModalVisible"
-    text="You are not able to add more then 5 items"
-    @onClose="() => state.isAlertModalVisible = false"
-  />
+    v-if="state.isAddAlertVisible"
+    @onClose="() => state.isAddAlertVisible = false"
+  >
+    You are not able to add more then {{ MAX_SIZE_LIST }} items to list. 
+    <br>Please remove some before adding the new one.
+  </AlertModal>
+
+  <AlertModal
+    v-if="state.isAddFavoriteAlertVisible"
+    @onClose="() => state.isAddFavoriteAlertVisible = false"
+  >
+    You are not able to add more then {{ MAX_SIZE_LIST }} items to list. 
+    <br>
+    Please go to 
+    <RouterLink
+      to="/favorites">
+      Favorites
+    </RouterLink>
+    and remove some forecast before adding the new one.
+  </AlertModal>
 </template>

@@ -7,27 +7,37 @@ import type { ForecastListItem } from '@/components/WeatherForecast/WeatherForec
 import WeatherForecastCardData from './WeatherForecastCardData.vue';
 import type { WeekForecast } from '@/types/WeekForecast';
 import Spinner from '../Spinner/Spinner.vue';
+import type { Favorite } from './useFavorites';
 
 type DAY = {
   date: string;
   list: WeekForecast['list']
 };
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
+  isFavoritesView: boolean,
   isSingle: boolean,
   isLast: boolean,
+  favorites: Array<Favorite>,
   forecast: ForecastListItem
-}>();
+}>(), {
+  isFavoritesView: false
+});
 
 const emit = defineEmits<{
   (e: 'changeForecastCity', name: string, id: number): void,
   (e: 'addForecast'): void,
   (e: 'deleteForecast', id: number): void,
-  (e: 'switchRange', rangeMode: RangeMode, id: number): void
+  (e: 'switchRange', rangeMode: RangeMode, id: number): void,
+  (e: 'addToFavorite', id: number): void
 }>();
 
-const {forecast} = props;
+const {forecast, favorites} = props;
 const {show, showModal, hideModal} = useModal();
+
+const isFavorite = computed(() => {
+  return favorites.findIndex(favorite => favorite.id === forecast.id) !== -1;
+});
 
 const dates: ComputedRef<DAY[]> = computed(() => {
   const list: string[] = [];
@@ -64,6 +74,7 @@ const onChangeCity = (e: Event) => {
     <div class="card-header">
       <div class="card-input-container">
         <input
+          v-if="!isFavoritesView"
           :value="forecast.cityName"
           @change="onChangeCity"
           class="card-input"
@@ -71,13 +82,19 @@ const onChangeCity = (e: Event) => {
         />
         <div v-show="forecast.error">{{ forecast.error }}</div>
       </div>
+
+      <span v-if="isFavorite" class="badge badge-pill badge-warning">Favorite</span>
       <button
+        v-else
         :disabled="!forecast.today"
-        class="btn btn-primary">
+        class="btn btn-primary"
+        :class="{active: isFavorite}"
+        @click="() => emit('addToFavorite', forecast.id)">
         Add to Favorites
       </button>
 
       <button
+        v-if="!isFavoritesView"
         class="btn btn-secondary action-button"
         :disabled="!isLast"
         @click="() => emit('addForecast')">
@@ -85,8 +102,8 @@ const onChangeCity = (e: Event) => {
       </button>
       <button
         class="btn btn-secondary action-button"
-        :disabled="isSingle"
-        @click="() => !isSingle && showModal()">
+        :disabled="!isFavoritesView && isSingle"
+        @click="() => showModal()">
         -
       </button>
     </div>
@@ -113,6 +130,7 @@ const onChangeCity = (e: Event) => {
           <template v-else>
             <WeatherForecastCardData
               v-if="forecast.rangeMode === 'DAY'"
+              :showDate="true"
               :temp="forecast.today.main.temp"
               :visibility="forecast.today.visibility"
               :windSpeed="forecast.today.wind.speed"
@@ -169,7 +187,10 @@ const onChangeCity = (e: Event) => {
 .card-header {
   display: flex;
   justify-content: space-between;
-  flex: 1;
+  align-items: baseline;
+}
+.card-header .btn {
+  margin-left: 1rem;
 }
 .card-input-container {
   flex: 1;
