@@ -19,6 +19,13 @@ export interface ForecastListItem {
   week?: WeekForecast | null;
 }
 
+interface GeolocationCoordinates {
+  coords: {
+    latitude: number;
+    longitude: number
+  }
+}
+
 interface State {
   forecastList: Array<ForecastListItem>;
   isAddAlertVisible: boolean;
@@ -43,15 +50,25 @@ const {favorites, addToFavorites} = useFavorites();
 const {getCityLatLon, getCityForecast, get5daysCityForecast, getTodayForecast} = useFetch();
 
 
-onMounted(async () => {
-  // const cityLocationResponse = await getCityLatLon();
+const fetchForecastByGeolocation = async () => {
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (response: GeolocationCoordinates) => {
+      const [forecast] = state.forecastList;
+      const todayForecast = await getCityForecast(response.coords.latitude, response.coords.longitude);
 
-  // if (cityLocationResponse) {
-  //   const [cityLatLon] = cityLocationResponse;
-  //   const todayResponse = await getTodayForecast(cityLatLon.lat, cityLatLon.lon);
-  //   forecastList.value?.push(todayResponse);
-  // }
+      if (todayForecast) {
+        forecast.today = todayForecast;
+        forecast.id = todayForecast.id;
+      } else {
+        forecast.error = 'City was not found';
+        forecast.today = null;
+      }
+    });
+  }
+}
 
+onMounted(() => {
+  fetchForecastByGeolocation();
 });
 
 const changeForecastCity = async (name: string, id: number) => {

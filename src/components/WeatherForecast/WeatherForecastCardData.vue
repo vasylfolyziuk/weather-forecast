@@ -3,15 +3,13 @@
 export interface ForecastCardData {
   date?: string;
   hour?: string;
-  showDate: boolean;
+  showDate?: boolean;
   temp: number;
   visibility: number;
   windSpeed: number;
   pressure: number;
   humidity: number;
 }
-
-const now = new Date();
 
 withDefaults(defineProps<ForecastCardData>(), {
   date: `${new Date().getFullYear()}-${(new Date().getMonth() + 1)}-${new Date().getDate()}`,
